@@ -5,7 +5,7 @@ import time
 
 def generate_roomte_testanswer():
     # Corresponding lists of answers for each column
-    RoomSharingPrefrence = random.choice(["Yes", "No"])
+    RoomSharingPrefrence = random.choice([True , False])
     YourGender = random.choice(["Male", "Female", "Prefer not to say", "Other"])
     GenderPref = random.choice(["Male", "Female", "Prefer not to say", "Other"])
     Budget = random.choice(["0-5000", "5000-10000", "10000-15000"])
@@ -34,7 +34,7 @@ def generate_roomte_testanswer():
         "I'm fairly organized but don't mind some mess.",
         "I'm more relaxed about cleaning and don't mind clutter."
     ])
-    SkillsCookClean = random.choice(["masterchef", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "mastercleaner"])
+    SkillsCookClean = random.choice([ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ])
     ComforWithCompany = random.choice([
         "I enjoy company and having people over.",
         "It depends on the situation.",
@@ -53,40 +53,39 @@ def generate_roomte_testanswer():
 
 
     data = {
-        "RoomSharingPrefrence": RoomSharingPrefrence,
-        "YourGender": YourGender,
-        "GenderPref": GenderPref,
-        "Budget": Budget,
-        "AgeRange": AgeRange,
-        "FriendshipChoice": FriendshipChoice,
-        "PersonalityTrait": PersonalityTrait,
-        "DailyRoutine": DailyRoutine,
-        "RoommatesDailyRoutine": RoommatesDailyRoutine,
-        "DietryPref": DietryPref,
-        "Personality": Personality,
-        "SocialStatus": SocialStatus,
-        "YourOccup": YourOccup,
-        "RoommateOccup": RoommateOccup,
-        "MoviePref": MoviePref,
-        "CitiPref": CitiPref,
-        "Cleanliness": Cleanliness,
-        "SkillsCookClean": SkillsCookClean,
-        "ComforWithCompany": ComforWithCompany,
-        "ConflictResolution": ConflictResolution,
-        "Boundaries": Boundaries,
+        "roomsharingprefrence": RoomSharingPrefrence,
+        "yourgender": YourGender,
+        "genderpref": GenderPref,
+        "budget": Budget,
+        "agerange": AgeRange,
+        "friendshipchoice": FriendshipChoice,
+        "personalitytrait": PersonalityTrait,
+        "dailyroutine": DailyRoutine,
+        "roommatesdailyroutine": RoommatesDailyRoutine,
+        "dietrypref": DietryPref,
+        "personality": Personality,
+        "socialstatus": SocialStatus,
+        "youroccup": YourOccup,
+        "roommateoccup": RoommateOccup,
+        "moviepref": MoviePref,
+        "citipref": CitiPref,
+        "cleanliness": Cleanliness,
+        "skillscookclean": SkillsCookClean,
+        "comforwithcompany": ComforWithCompany,
+        "conflictresolution": ConflictResolution,
+        "boundaries": Boundaries,
     }
 
     return data
 
 
 async def send_post_request(session, data):
-    print(data)
-
     headers = {'Content-Type': 'application/json'}
 
     url = 'http://localhost:5000/store_data'
     try:
         async with session.post(url, headers=headers, json=data) as response:
+            print(await response.json())
             return await response.json()
     except aiohttp.ClientError as e:
         print("Error:", e)
@@ -95,7 +94,7 @@ async def send_post_request(session, data):
 async def main():
     start_time = time.time()
 
-    num_requests = 100
+    num_requests = 10000
     reviews = [generate_roomte_testanswer() for _ in range(num_requests)]
 
     async with aiohttp.ClientSession() as session:
@@ -106,7 +105,7 @@ async def main():
 
     print(
         f"Time taken to send {num_requests} POST requests: {end_time - start_time:.6f} seconds")
-    print("Responses:", results)
+    
 
 
 if __name__ == "__main__":
