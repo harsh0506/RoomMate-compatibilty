@@ -1,15 +1,17 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file ,make_response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, text
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import pandas as pd
 
 load_dotenv()
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DB_URL")
 db = SQLAlchemy(app)
+
 
 class UserData(db.Model):
     __tablename__ = 'userdata'
@@ -36,15 +38,17 @@ class UserData(db.Model):
     conflictresolution = Column(String(255))
     boundaries = Column(String(255))
     createdat = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
-    updatedat = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'), onupdate=datetime.utcnow)
+    updatedat = Column(TIMESTAMP, server_default=text(
+        'CURRENT_TIMESTAMP'), onupdate=datetime.utcnow)
     deletedat = Column(TIMESTAMP)
+
 
 @app.route('/store_data', methods=['POST'])
 def store_data():
     print(request.get_json())
     data = request.get_json()  # Assuming JSON data is sent in the request
     new_data = UserData(**data)
-    
+
     try:
         db.session.add(new_data)
         db.session.commit()
@@ -52,10 +56,12 @@ def store_data():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
-    
-@app.route("/",methods=["GET"])
+
+
+@app.route("/", methods=["GET"])
 def see():
-    return jsonify({"msg":"jhbbewb"})   
+    return jsonify({"msg": "jhbbewb"})
+
 
 @app.route('/get_all_data', methods=['GET'])
 def get_all_data():
@@ -94,6 +100,55 @@ def get_all_data():
             data_list.append(data_dict)
 
         return jsonify(data_list), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/download_csv', methods=['GET'])
+def download_csv():
+    try:
+        all_data = UserData.query.all()
+
+        data_list = []
+
+        for data in all_data:
+            data_dict = {
+                "id": data.id,
+                "roomsharingprefrence": data.roomsharingprefrence,
+                "yourgender": data.yourgender,
+                "genderpref": data.genderpref,
+                "budget": data.budget,
+                "agerange": data.agerange,
+                "friendshipchoice": data.friendshipchoice,
+                "personalitytrait": data.personalitytrait,
+                "dailyroutine": data.dailyroutine,
+                "roommatesdailyroutine": data.roommatesdailyroutine,
+                "dietrypref": data.dietrypref,
+                "personality": data.personality,
+                "socialstatus": data.socialstatus,
+                "youroccup": data.youroccup,
+                "roommateoccup": data.roommateoccup,
+                "moviepref": data.moviepref,
+                "citipref": data.citipref,
+                "cleanliness": data.cleanliness,
+                "skillscookclean": data.skillscookclean,
+                "comforwithcompany": data.comforwithcompany,
+                "conflictresolution": data.conflictresolution,
+                "boundaries": data.boundaries,
+                "createdat": data.createdat.strftime('%Y-%m-%d %H:%M:%S'),
+                "updatedat": data.updatedat.strftime('%Y-%m-%d %H:%M:%S'),
+                "deletedat": data.deletedat.strftime('%Y-%m-%d %H:%M:%S') if data.deletedat else None
+            }
+            data_list.append(data_dict)
+
+        df = pd.DataFrame(data_list)
+        csv_data = df.to_csv(index=False)
+
+        response = make_response(csv_data)
+        response.headers['Content-Type'] = 'text/csv'
+        response.headers['Content-Disposition'] = 'attachment; filename=data.csv'
+
+        return response
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
