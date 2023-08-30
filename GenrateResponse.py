@@ -94,7 +94,7 @@ async def send_post_request(session, data):
 async def main():
     start_time = time.time()
 
-    num_requests = 10000
+    num_requests = 2
     reviews = [generate_roomte_testanswer() for _ in range(num_requests)]
 
     async with aiohttp.ClientSession() as session:
